@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Type } from "./constant";
 import Options from "./components/Config";
 import useBlazepose from "./useBlazepose";
+import Three from "./components/Three";
 
 import ImageSrc from "./assets/yoga.jpeg";
 
@@ -23,14 +24,17 @@ function App() {
     >
       <Options _onSetSelected={setSelected} _onClear={clear} />
 
-      <canvas
-        id="output"
-        style={{
-          width: "640px",
-          height: "480px",
-          objectFit: "contain",
-        }}
-      ></canvas>
+      <div style={{ display: "flex" }}>
+        <canvas
+          id="output"
+          style={{
+            width: "640px",
+            height: "480px",
+            objectFit: "contain",
+          }}
+        />
+        <Three />
+      </div>
       {selected === Type.Camera && (
         <video
           id="video"
