@@ -1,9 +1,18 @@
 import { useEffect, useState } from "react";
 
+import { Type } from "./constant";
+import Options from "./components/Config";
 import useBlazepose from "./useBlazepose";
 
+import ImageSrc from "./assets/yoga.jpeg";
+
 function App() {
-  useBlazepose();
+  const [selected, setSelected] = useState(null);
+  const { start, clear } = useBlazepose();
+
+  useEffect(() => {
+    start(selected);
+  }, [selected]);
 
   return (
     <div
@@ -12,16 +21,51 @@ function App() {
         flexDirection: "column",
       }}
     >
-      <canvas id="output"></canvas>
-      <video
-        id="video"
-        autoPlay
-        playsInline
+      <Options _onSetSelected={setSelected} _onClear={clear} />
+
+      <canvas
+        id="output"
         style={{
-          transform: "scaleX(-1)",
-          visibility: "hidden",
+          width: "640px",
+          height: "480px",
+          objectFit: "contain",
         }}
-      ></video>
+      ></canvas>
+      {selected === Type.Camera && (
+        <video
+          id="video"
+          autoPlay
+          playsInline
+          style={{
+            transform: "scaleX(-1)",
+            display: "none",
+            width: "640px",
+            height: "480px",
+          }}
+        />
+      )}
+      {(selected === Type.VideoSolo || selected === Type.VideoGroup) && (
+        <video
+          id="video"
+          autoPlay
+          playsInline
+          loop
+          controls
+          muted
+          style={{
+            width: "640px",
+            height: "480px",
+          }}
+        />
+      )}
+      <img
+        id="image"
+        alt="preview-img"
+        src={ImageSrc}
+        style={{
+          display: "none",
+        }}
+      />
     </div>
   );
 }

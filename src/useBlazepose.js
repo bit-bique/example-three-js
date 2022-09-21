@@ -1,26 +1,51 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import * as poseDetection from "@tensorflow-models/pose-detection";
 import "@tensorflow/tfjs-backend-webgl";
 
+import { Type } from "./constant";
 import useStats from "./useStats";
 
+import VideoSoloSrc from "./assets/video-solo.mp4";
+import VideoGroupSrc from "./assets/video-group.mp4";
+
 const scoreThreshold = 0.6;
-let video, canvas, ctx;
+let video, img;
+let canvas, ctx;
 let model, detector;
 
 const useBlazepose = () => {
   const { animate } = useStats();
+  const posesAnimationFrameRef = useRef();
+  const fpsAnimationFrameRef = useRef();
 
-  useEffect(() => {
+  const start = async (type) => {
     video = document.getElementById("video");
+    img = document.getElementById("image");
     canvas = document.getElementById("output");
     ctx = canvas.getContext("2d");
+    clear();
 
-    (async () => {
-      await createDetector();
-      await activateVideo();
-    })();
-  }, []);
+    await createDetector();
+
+    switch (type) {
+      case Type.Camera:
+        return await activateCamera();
+      case Type.Image:
+        return await activateImage();
+      case Type.VideoSolo:
+      case Type.VideoGroup:
+        return await activateVideo(type);
+      default:
+    }
+  };
+
+  const clear = () => {
+    ctx.beginPath();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    cancelAnimationFrame(posesAnimationFrameRef.current);
+    cancelAnimationFrame(fpsAnimationFrameRef.current);
+  };
 
   const createDetector = async () => {
     model = poseDetection.SupportedModels.BlazePose;
@@ -32,7 +57,31 @@ const useBlazepose = () => {
     detector = await poseDetection.createDetector(model, detectorConfig);
   };
 
-  const activateVideo = async () => {
+  const activateVideo = async (type) => {
+    if (type === Type.VideoSolo) video.src = VideoSoloSrc;
+    else if (type === Type.VideoGroup) video.src = VideoGroupSrc;
+
+    video.onloadedmetadata = () => {
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
+
+      video.width = videoWidth;
+      video.height = videoHeight;
+      canvas.width = videoWidth;
+      canvas.height = videoHeight;
+    };
+
+    video.addEventListener("loadeddata", () => predictPoses(video));
+  };
+
+  const activateImage = async () => {
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    predictPoses(img, false);
+  };
+
+  const activateCamera = async () => {
     if (navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices
         .getUserMedia({
@@ -63,15 +112,15 @@ const useBlazepose = () => {
       ctx.scale(-1, 1);
     };
 
-    video.addEventListener("loadeddata", predictPoses);
+    video.addEventListener("loadeddata", () => predictPoses(video));
   };
 
-  const predictPoses = async () => {
+  const predictPoses = async (element, isLoop = true) => {
     let poses = null;
 
     if (detector != null) {
       try {
-        poses = await detector.estimatePoses(video, {
+        poses = await detector.estimatePoses(element, {
           flipHorizontal: false,
         });
       } catch (error) {
@@ -80,8 +129,8 @@ const useBlazepose = () => {
         alert(error);
       }
     }
-    ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-    requestAnimationFrame(animate);
+    ctx.drawImage(element, 0, 0, element.width, element.height);
+    fpsAnimationFrameRef.current = requestAnimationFrame(animate);
 
     if (poses && poses.length > 0) {
       for (const pose of poses) {
@@ -92,7 +141,10 @@ const useBlazepose = () => {
       }
     }
 
-    window.requestAnimationFrame(predictPoses);
+    if (isLoop)
+      posesAnimationFrameRef.current = requestAnimationFrame(() =>
+        predictPoses(element)
+      );
   };
 
   const drawKeypoints = (keypoints) => {
@@ -131,6 +183,8 @@ const useBlazepose = () => {
       }
     });
   };
+
+  return { start, clear };
 };
 
 export default useBlazepose;
