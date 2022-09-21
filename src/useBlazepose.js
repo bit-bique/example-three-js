@@ -25,7 +25,9 @@ const useBlazepose = () => {
     ctx = canvas.getContext("2d");
     clear();
 
+    console.log("loading ....");
     await createDetector();
+    console.log("done ....");
 
     switch (type) {
       case Type.Camera:
@@ -92,6 +94,7 @@ const useBlazepose = () => {
         })
         .then((stream) => {
           video.srcObject = stream;
+          video.play();
         })
         .catch((e) => {
           console.log("Error occurred while getting the video stream");

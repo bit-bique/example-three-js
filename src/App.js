@@ -12,7 +12,7 @@ function App() {
   const { start, clear } = useBlazepose();
 
   useEffect(() => {
-    start(selected);
+    if (selected) start(selected);
   }, [selected]);
 
   return (
@@ -24,17 +24,16 @@ function App() {
     >
       <Options _onSetSelected={setSelected} _onClear={clear} />
 
-      <div style={{ display: "flex" }}>
-        <canvas
-          id="output"
-          style={{
-            width: "640px",
-            height: "480px",
-            objectFit: "contain",
-          }}
-        />
-        <Three />
-      </div>
+      <Three />
+      <canvas
+        id="output"
+        style={{
+          width: "640px",
+          height: "480px",
+          objectFit: "contain",
+        }}
+      />
+
       {selected === Type.Camera && (
         <video
           id="video"
