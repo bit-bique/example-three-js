@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import browserVersion from "./libs/browserVersion";
 
 import { Type } from "./constant";
 import Options from "./components/Config";
@@ -10,6 +11,7 @@ import ImageSrc from "./assets/yoga.jpeg";
 function App() {
   const [selected, setSelected] = useState(null);
   const { start, clear } = useBlazepose();
+  const version = browserVersion();
 
   useEffect(() => {
     if (selected) start(selected);
@@ -23,6 +25,7 @@ function App() {
       }}
     >
       <Options _onSetSelected={setSelected} _onClear={clear} />
+      <span style={{ color: "black" }}>{version}</span>
 
       <Three />
       <canvas

@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import * as poseDetection from "@tensorflow-models/pose-detection";
+import * as tf from "@tensorflow/tfjs-core";
 import "@tensorflow/tfjs-backend-webgl";
+// import "@mediapipe/pose";
 
 import { Type } from "./constant";
 import useStats from "./useStats";
@@ -24,6 +26,8 @@ const useBlazepose = () => {
     canvas = document.getElementById("output");
     ctx = canvas.getContext("2d");
     clear();
+
+    tf.setBackend("webgl");
 
     console.log("loading ....");
     await createDetector();
@@ -54,7 +58,7 @@ const useBlazepose = () => {
     const detectorConfig = {
       runtime: "tfjs",
       enableSmoothing: true,
-      modelType: "full",
+      modelType: "lite",
     };
     detector = await poseDetection.createDetector(model, detectorConfig);
   };
@@ -133,7 +137,8 @@ const useBlazepose = () => {
       }
     }
     ctx.drawImage(element, 0, 0, element.width, element.height);
-    fpsAnimationFrameRef.current = requestAnimationFrame(animate);
+    // fpsAnimationFrameRef.current = requestAnimationFrame(animate);
+    setTimeout(animate, 10);
 
     if (poses && poses.length > 0) {
       for (const pose of poses) {
@@ -145,9 +150,10 @@ const useBlazepose = () => {
     }
 
     if (isLoop)
-      posesAnimationFrameRef.current = requestAnimationFrame(() =>
-        predictPoses(element)
-      );
+      // posesAnimationFrameRef.current = requestAnimationFrame(() =>
+      //   predictPoses(element)
+      // );
+      setTimeout(() => predictPoses(element), 10);
   };
 
   const drawKeypoints = (keypoints) => {

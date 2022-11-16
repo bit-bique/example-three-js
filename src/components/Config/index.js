@@ -26,7 +26,7 @@ const Options = (props) => {
         padding: "0.5rem",
         background: "rgba(0,0,0,0.4)",
         borderRadius: "4px",
-        width: "6rem",
+        width: "50%",
         gap: "0.5rem",
       }}
     >
